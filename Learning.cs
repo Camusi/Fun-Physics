@@ -1,7 +1,5 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MonoGame.Extended;
-
 
 namespace FunPhysics
 {
@@ -13,21 +11,47 @@ namespace FunPhysics
         private Vector2 ball2Pos;
         private Vector2 ball1Vel;
         private Vector2 ball2Vel;
-        private const float ballRadius = 40;
+        private const float ballRadius = 20;
+        private Texture2D? ballTexture;
+
 
         public Simulation()
         {
             graphics = new GraphicsDeviceManager(this);
             IsMouseVisible = true;
+            graphics.PreferredBackBufferWidth = 1800;
+            graphics.PreferredBackBufferHeight = 1000;
+            graphics.ApplyChanges();
         }
+
+        Texture2D CreateCircleTexture(GraphicsDevice graphics, int radius, Color color)
+        {
+            int diameter = radius * 2;
+            Texture2D texture = new Texture2D(graphics, diameter, diameter);
+            Color[] data = new Color[diameter * diameter];
+
+            for (int y = 0; y < diameter; y++)
+            {
+                for (int x = 0; x < diameter; x++)
+                {
+                    int index = y * diameter + x;
+                    Vector2 pos = new Vector2(x - radius, y - radius);
+                    data[index] = pos.Length() <= radius ? color : Color.Transparent;
+                }
+            }
+
+            texture.SetData(data);
+            return texture;
+        }
+
 
         protected override void Initialize()
         {
             ball1Pos = new Vector2(200, 50);
             ball2Pos = new Vector2(400, 100);
 
-            ball1Vel = new Vector2(0, 0);
-            ball2Vel = new Vector2(0, 0);
+            ball1Vel = new Vector2(120, 0);
+            ball2Vel = new Vector2(0, 100);
 
             base.Initialize();
         }
@@ -35,8 +59,40 @@ namespace FunPhysics
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            CircleF circle = new CircleF(ball1Pos, ballRadius);
+            ballTexture = CreateCircleTexture(GraphicsDevice, (int)ballRadius, Color.Blue);
         }
+
+        protected override void Update(GameTime gameTime)
+        {
+            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds; // time elapsed since last frame
+
+            float G = 10000f; // tweak this for visible attraction
+            float m1 = 1f;
+            float m2 = 1f;
+
+            Vector2 direction = ball2Pos - ball1Pos;
+            float r = direction.Length();
+
+            // Gravitational acceleration formula: F = G*(m/r^2)
+            //
+            // G        =   Gravitational constant
+            // m        =   Mass
+            // r        =   Distance between center of ball and target
+
+            Vector2 a1 = direction * G * m2 / (r * r);
+            Vector2 a2 = -direction * G * m1 / (r * r);
+
+            // Velocity = acceleration * time
+            ball1Vel += a1 * dt;
+            ball2Vel += a2 * dt;
+
+            // Distance = velocity * time
+            ball1Pos += ball1Vel * dt;
+            ball2Pos += ball2Vel * dt;
+
+            base.Update(gameTime);
+        }
+
 
         protected override void Draw(GameTime gameTime)
         {
@@ -44,8 +100,12 @@ namespace FunPhysics
 
             spriteBatch!.Begin();
 
-            spriteBatch.DrawCircle(new CircleF(ball1Pos, ballRadius), 2, Color.Red);
-            spriteBatch.DrawCircle(new CircleF(ball2Pos, ballRadius), 2, Color.Blue);
+            if (ballTexture != null)
+            {
+                spriteBatch.Draw(ballTexture, ball1Pos - new Vector2(ballRadius), Color.White);
+
+                spriteBatch.Draw(ballTexture, ball2Pos - new Vector2(ballRadius), Color.White);
+            }
 
             spriteBatch.End();
 

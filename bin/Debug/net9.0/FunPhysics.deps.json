@@ -8,10 +8,19 @@
     ".NETCoreApp,Version=v9.0": {
       "FunPhysics/1.0.0": {
         "dependencies": {
+          "MonoGame.Extended": "5.2.0",
           "MonoGame.Framework.DesktopGL": "3.8.4.1"
         },
         "runtime": {
           "FunPhysics.dll": {}
+        }
+      },
+      "MonoGame.Extended/5.2.0": {
+        "runtime": {
+          "lib/net8.0/MonoGame.Extended.dll": {
+            "assemblyVersion": "5.2.0.0",
+            "fileVersion": "5.2.0.0"
+          }
         }
       },
       "MonoGame.Framework.DesktopGL/3.8.4.1": {
@@ -126,6 +135,13 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
+    },
+    "MonoGame.Extended/5.2.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-FpdNgg4qQLqyFAxeRaVCqdYD9rLh00x4DJ/PGJGRlfde2UgbcgSQbokk0MkqRusMNg5S1CdZ8oW3ErUWgbBhUw==",
+      "path": "monogame.extended/5.2.0",
+      "hashPath": "monogame.extended.5.2.0.nupkg.sha512"
     },
     "MonoGame.Framework.DesktopGL/3.8.4.1": {
       "type": "package",

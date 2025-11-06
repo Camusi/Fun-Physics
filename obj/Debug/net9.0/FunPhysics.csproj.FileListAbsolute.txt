@@ -14,6 +14,11 @@ C:\Users\sammy\OneDrive\Documents\Coding\Fun-Physics\obj\Debug\net9.0\FunPhysics
 C:\Users\sammy\OneDrive\Documents\Coding\Fun-Physics\obj\Debug\net9.0\FunPhysics.genruntimeconfig.cache
 C:\Users\sammy\OneDrive\Documents\Coding\Fun-Physics\obj\Debug\net9.0\ref\FunPhysics.dll
 C:\Users\sammy\OneDrive\Documents\Coding\Fun-Physics\bin\Debug\net9.0\MonoGame.Framework.dll
+C:\Users\sammy\OneDrive\Documents\Coding\Fun-Physics\bin\Debug\net9.0\runtimes\linux-x64\native\libSDL2-2.0.so.0
+C:\Users\sammy\OneDrive\Documents\Coding\Fun-Physics\bin\Debug\net9.0\runtimes\win-x64\native\SDL2.dll
+C:\Users\sammy\OneDrive\Documents\Coding\Fun-Physics\obj\Debug\net9.0\FunPhysics.csproj.AssemblyReference.cache
+C:\Users\sammy\OneDrive\Documents\Coding\Fun-Physics\obj\Debug\net9.0\FunPhysics.csproj.Up2Date
+C:\Users\sammy\OneDrive\Documents\Coding\Fun-Physics\bin\Debug\net9.0\MonoGame.Extended.dll
 C:\Users\sammy\OneDrive\Documents\Coding\Fun-Physics\bin\Debug\net9.0\NVorbis.dll
 C:\Users\sammy\OneDrive\Documents\Coding\Fun-Physics\bin\Debug\net9.0\runtimes\android-arm\native\libopenal.so
 C:\Users\sammy\OneDrive\Documents\Coding\Fun-Physics\bin\Debug\net9.0\runtimes\android-arm64\native\libopenal.so
@@ -26,8 +31,4 @@ C:\Users\sammy\OneDrive\Documents\Coding\Fun-Physics\bin\Debug\net9.0\runtimes\l
 C:\Users\sammy\OneDrive\Documents\Coding\Fun-Physics\bin\Debug\net9.0\runtimes\linux-x64\native\libopenal.so
 C:\Users\sammy\OneDrive\Documents\Coding\Fun-Physics\bin\Debug\net9.0\runtimes\osx\native\libopenal.dylib
 C:\Users\sammy\OneDrive\Documents\Coding\Fun-Physics\bin\Debug\net9.0\runtimes\win-x64\native\openal.dll
-C:\Users\sammy\OneDrive\Documents\Coding\Fun-Physics\bin\Debug\net9.0\runtimes\linux-x64\native\libSDL2-2.0.so.0
 C:\Users\sammy\OneDrive\Documents\Coding\Fun-Physics\bin\Debug\net9.0\runtimes\osx\native\libSDL2-2.0.0.dylib
-C:\Users\sammy\OneDrive\Documents\Coding\Fun-Physics\bin\Debug\net9.0\runtimes\win-x64\native\SDL2.dll
-C:\Users\sammy\OneDrive\Documents\Coding\Fun-Physics\obj\Debug\net9.0\FunPhysics.csproj.AssemblyReference.cache
-C:\Users\sammy\OneDrive\Documents\Coding\Fun-Physics\obj\Debug\net9.0\FunPhysics.csproj.Up2Date

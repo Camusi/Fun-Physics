@@ -98,11 +98,9 @@ namespace FunPhysics
             ball2Pos += ball2Vel * dt;
 
 
-            // Add current positions to trail
             ball1Trail.Add(ball1Pos);
             ball2Trail.Add(ball2Pos);
 
-            // Limit trail length
             if (ball1Trail.Count > maxTrailLength)
                 ball1Trail.RemoveAt(0);
             if (ball2Trail.Count > maxTrailLength)

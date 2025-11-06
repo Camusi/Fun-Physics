@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\sammy\\OneDrive\\Documents\\Coding\\FunPhysics\\FunPhysics.csproj": {}
+    "C:\\Users\\sammy\\OneDrive\\Documents\\Coding\\Fun-Physics\\FunPhysics.csproj": {}
   },
   "projects": {
-    "C:\\Users\\sammy\\OneDrive\\Documents\\Coding\\FunPhysics\\FunPhysics.csproj": {
+    "C:\\Users\\sammy\\OneDrive\\Documents\\Coding\\Fun-Physics\\FunPhysics.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\sammy\\OneDrive\\Documents\\Coding\\FunPhysics\\FunPhysics.csproj",
+        "projectUniqueName": "C:\\Users\\sammy\\OneDrive\\Documents\\Coding\\Fun-Physics\\FunPhysics.csproj",
         "projectName": "FunPhysics",
-        "projectPath": "C:\\Users\\sammy\\OneDrive\\Documents\\Coding\\FunPhysics\\FunPhysics.csproj",
+        "projectPath": "C:\\Users\\sammy\\OneDrive\\Documents\\Coding\\Fun-Physics\\FunPhysics.csproj",
         "packagesPath": "C:\\Users\\sammy\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\sammy\\OneDrive\\Documents\\Coding\\FunPhysics\\obj\\",
+        "outputPath": "C:\\Users\\sammy\\OneDrive\\Documents\\Coding\\Fun-Physics\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\sammy\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -43,6 +43,12 @@
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
+          "dependencies": {
+            "MonoGame.Framework.DesktopGL": {
+              "target": "Package",
+              "version": "[3.8.4.1, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",

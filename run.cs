@@ -7,7 +7,7 @@ namespace FunPhysics
         [STAThread]
         static void Main()
         {
-            Simulate.Test();
+            Simulation.Simulate();
             // using var game = new Game1();
             // game.Run();
         }

@@ -11,8 +11,14 @@ namespace FunPhysics
         private Vector2 ball2Pos;
         private Vector2 ball1Vel;
         private Vector2 ball2Vel;
-        private const float ballRadius = 20;
+        private const float ballRadius = 15;
         private Texture2D? ballTexture;
+
+        // Trails
+        private Texture2D? trailTexture;
+        private List<Vector2> ball1Trail = new List<Vector2>();
+        private List<Vector2> ball2Trail = new List<Vector2>();
+        private const int maxTrailLength = 50; // how many points to keep
 
 
         public Simulation()
@@ -20,7 +26,7 @@ namespace FunPhysics
             graphics = new GraphicsDeviceManager(this);
             IsMouseVisible = true;
             graphics.PreferredBackBufferWidth = 1800;
-            graphics.PreferredBackBufferHeight = 1000;
+            graphics.PreferredBackBufferHeight = 900;
             graphics.ApplyChanges();
         }
 
@@ -47,11 +53,11 @@ namespace FunPhysics
 
         protected override void Initialize()
         {
-            ball1Pos = new Vector2(200, 50);
-            ball2Pos = new Vector2(400, 100);
+            ball1Pos = new Vector2(graphics.PreferredBackBufferWidth/2 + 100, graphics.PreferredBackBufferHeight/2 + 100);
+            ball2Pos = new Vector2(graphics.PreferredBackBufferWidth/2 - 100, graphics.PreferredBackBufferHeight/2 - 100);
 
-            ball1Vel = new Vector2(120, 0);
-            ball2Vel = new Vector2(0, 100);
+            ball1Vel = new Vector2(0, 100);
+            ball2Vel = new Vector2(100, 0);
 
             base.Initialize();
         }
@@ -59,6 +65,7 @@ namespace FunPhysics
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
+            trailTexture = CreateCircleTexture(GraphicsDevice, (int)ballRadius/4, Color.White);
             ballTexture = CreateCircleTexture(GraphicsDevice, (int)ballRadius, Color.Blue);
         }
 
@@ -66,7 +73,7 @@ namespace FunPhysics
         {
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds; // time elapsed since last frame
 
-            float G = 10000f; // tweak this for visible attraction
+            float G = 20000f; // tweak this for visible attraction
             float m1 = 1f;
             float m2 = 1f;
 
@@ -90,6 +97,18 @@ namespace FunPhysics
             ball1Pos += ball1Vel * dt;
             ball2Pos += ball2Vel * dt;
 
+
+            // Add current positions to trail
+            ball1Trail.Add(ball1Pos);
+            ball2Trail.Add(ball2Pos);
+
+            // Limit trail length
+            if (ball1Trail.Count > maxTrailLength)
+                ball1Trail.RemoveAt(0);
+            if (ball2Trail.Count > maxTrailLength)
+                ball2Trail.RemoveAt(0);
+
+
             base.Update(gameTime);
         }
 
@@ -99,6 +118,16 @@ namespace FunPhysics
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             spriteBatch!.Begin();
+
+            foreach (var pos in ball1Trail)
+            {
+                spriteBatch.Draw(trailTexture, pos - new Vector2(ballRadius/4), Color.White);
+            }
+
+            foreach (var pos in ball2Trail)
+            {
+                spriteBatch.Draw(trailTexture, pos - new Vector2(ballRadius/4), Color.White);
+            }
 
             if (ballTexture != null)
             {

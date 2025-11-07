@@ -3,4 +3,9 @@
 /platform:Windows
 /profile:HiDef
 
-/importer:ModelImporter /processor:ModelProcessor /build:Content/Models/sphere.fbx /outputFile:sphere.xnb
+# Build the sphere model
+#-----------------------
+# Content: Content/Models/sphere.fbx
+# Processor: ModelProcessor
+# Importer: FbxImporter
+# OutputFile: sphere.xnb

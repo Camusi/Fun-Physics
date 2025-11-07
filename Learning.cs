@@ -69,12 +69,17 @@ namespace FunPhysics
 
             Random random = new Random();
 
+            balls.Add(new Ball(
+                    new Vector2(900, 500),
+                    new Vector2(0, 0),
+                    100));
+
             for (int i = 0; i < numBalls; i++)
             {
                 balls.Add(new Ball(
                     new Vector2(random.Next(100, 901), random.Next(100, 701)),
                     new Vector2(random.Next(-50, 51), random.Next(-50, 51)),
-                    random.Next(1, 8)));
+                    random.Next(5, 30)));
             }
 
             base.Initialize();
@@ -89,14 +94,14 @@ namespace FunPhysics
             foreach (var ball in balls)
             {
                 color = new Color(MathHelper.Clamp(color.R + 20, 0, 255),color.G,color.B);
-                ball.Texture = CreateCircleTexture(GraphicsDevice, (int)ball.Mass*10, color);
+                ball.Texture = CreateCircleTexture(GraphicsDevice, (int)ball.Mass, color);
             }
         }
 
        protected override void Update(GameTime gameTime)
         {
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            float G = 500f;
+            float G = 100;
 
             // Compute gravitational forces
             for (int i = 0; i < balls.Count; i++)

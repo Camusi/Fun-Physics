@@ -1,0 +1,6 @@
+/outputDir:bin/Content
+/intermediateDir:obj
+/platform:Windows
+/profile:HiDef
+
+/importer:ModelImporter /processor:ModelProcessor /build:Content/Models/sphere.fbx /outputFile:sphere.xnb

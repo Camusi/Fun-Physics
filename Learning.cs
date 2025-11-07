@@ -1,85 +1,67 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
+using System.Collections.Generic;
 
 namespace FunPhysics
 {
     class Ball
     {
-        public Vector2 Position;
-        public Vector2 Velocity;
+        public Vector3 Position;
+        public Vector3 Velocity;
         public float Mass;
-        public List<Vector2> Trail = new List<Vector2>();
-        public Texture2D? Texture;
-
-        public Ball(Vector2 pos, Vector2 vel, float mass)
+        public float Radius;
+        public Ball(Vector3 pos, Vector3 vel, float mass)
         {
             Position = pos;
             Velocity = vel;
             Mass = mass;
+            Radius = mass; // scale radius with mass
         }
     }
 
-
-    class Simulation : Game
+    public class Simulation : Game
     {
-        private GraphicsDeviceManager graphics;     // Creates the game window, controls resolution
-        private SpriteBatch? spriteBatch;    // Used to draw textures/sprites
+        private GraphicsDeviceManager graphics;
+        private SpriteBatch? spriteBatch;
 
-        // Balls
         private List<Ball> balls = new List<Ball>();
-        private const float ballRadius = 15;
+        private Model? sphereModel;
 
-        // Trails
-        private Texture2D? trailTexture;
-        private const int maxTrailLength = 50;
-
+        // Camera
+        private Vector3 cameraPosition = new Vector3(0, 200, 800);
+        private Vector3 cameraTarget = new Vector3(0, 0, 0);
+        private Matrix view;
+        private Matrix projection;
 
         public Simulation()
         {
             graphics = new GraphicsDeviceManager(this);
+            Content.RootDirectory = "Content";
             IsMouseVisible = true;
-            graphics.PreferredBackBufferWidth = 1800;
-            graphics.PreferredBackBufferHeight = 900;
-            graphics.ApplyChanges();
-        }
-
-        public Texture2D CreateCircleTexture(GraphicsDevice graphics, int radius, Color color)
-        {
-            int diameter = radius * 2;
-            Texture2D texture = new Texture2D(graphics, diameter, diameter);
-            Color[] data = new Color[diameter * diameter];
-
-            for (int y = 0; y < diameter; y++)
-            {
-                for (int x = 0; x < diameter; x++)
-                {
-                    int index = y * diameter + x;
-                    Vector2 pos = new Vector2(x - radius, y - radius);
-                    data[index] = pos.Length() <= radius ? color : Color.Transparent;
-                }
-            }
-
-            texture.SetData(data);
-            return texture;
         }
 
         protected override void Initialize()
         {
-            int numBalls = 8;
+            // Initialize camera
+            view = Matrix.CreateLookAt(cameraPosition, cameraTarget, Vector3.Up);
+            projection = Matrix.CreatePerspectiveFieldOfView(
+                MathHelper.ToRadians(45f),
+                GraphicsDevice.Viewport.AspectRatio,
+                1f,
+                5000f
+            );
 
-            Random random = new Random();
-
-            balls.Add(new Ball(
-                    new Vector2(900, 500),
-                    new Vector2(0, 0),
-                    100));
-
-            for (int i = 0; i < numBalls; i++)
+            // Create balls
+            Random rnd = new Random();
+            balls.Add(new Ball(new Vector3(0, 0, 0), Vector3.Zero, 50)); // heavy center ball
+            for (int i = 0; i < 8; i++)
             {
                 balls.Add(new Ball(
-                    new Vector2(random.Next(100, 901), random.Next(100, 701)),
-                    new Vector2(random.Next(-50, 51), random.Next(-50, 51)),
-                    random.Next(5, 30)));
+                    new Vector3(rnd.Next(-200, 200), rnd.Next(-200, 200), rnd.Next(-200, 200)),
+                    new Vector3(rnd.Next(-50, 51), rnd.Next(-50, 51), rnd.Next(-50, 51)),
+                    rnd.Next(5, 30)
+                ));
             }
 
             base.Initialize();
@@ -88,86 +70,63 @@ namespace FunPhysics
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            trailTexture = CreateCircleTexture(GraphicsDevice, (int)ballRadius / 4, Color.LightBlue);
-            
-            Color color = Color.Blue;
-            foreach (var ball in balls)
-            {
-                color = new Color(MathHelper.Clamp(color.R + 20, 0, 255),color.G,color.B);
-                ball.Texture = CreateCircleTexture(GraphicsDevice, (int)ball.Mass, color);
-            }
+            // Load a basic sphere model
+            // You can create a sphere model in Blender and export as .fbx
+            sphereModel = Content.Load<Model>("sphere"); 
         }
 
-       protected override void Update(GameTime gameTime)
+        protected override void Update(GameTime gameTime)
         {
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            float G = 100;
+            float G = 500f;
 
             // Compute gravitational forces
             for (int i = 0; i < balls.Count; i++)
             {
-                Vector2 totalAccel = new Vector2(0, 0);
-
+                Vector3 totalAccel = Vector3.Zero;
                 for (int j = 0; j < balls.Count; j++)
                 {
-                    if (i != j)
-                    {
-                        Vector2 direction = balls[j].Position - balls[i].Position;
-                        float r = direction.Length();
-
-                        // Gravitational acceleration formula: F = G*(m/r^2)
-                        //
-                        // G        =   Gravitational constant
-                        // m        =   Mass
-                        // r        =   Distance between center of ball and target
-                        totalAccel += direction * G * balls[j].Mass / (r * r);
-                    }
+                    if (i == j) continue;
+                    Vector3 direction = balls[j].Position - balls[i].Position;
+                    float r = direction.Length();
+                    if (r < 0.01f) continue;
+                    direction.Normalize();
+                    totalAccel += direction * G * balls[j].Mass / (r * r);
                 }
-
-                // Velocity = acceleration * time
                 balls[i].Velocity += totalAccel * dt;
             }
 
-            // Update positions and trails
+            // Update positions
             foreach (var ball in balls)
             {
-                // Distance = velocity * time
                 ball.Position += ball.Velocity * dt;
-
-                ball.Trail.Add(ball.Position);
-                if (ball.Trail.Count > maxTrailLength)
-                    ball.Trail.RemoveAt(0);
             }
 
             base.Update(gameTime);
         }
 
-
-
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.Black);
-            spriteBatch!.Begin();
+            GraphicsDevice.Clear(Color.CornflowerBlue);
 
             foreach (var ball in balls)
             {
-                // Draw the trail
-                foreach (var pos in ball.Trail)
-                    spriteBatch.Draw(trailTexture, pos - new Vector2(ballRadius / 4), Color.White);
+                Matrix world = Matrix.CreateScale(ball.Radius) * Matrix.CreateTranslation(ball.Position);
 
-                // Draw the ball using its own texture
-                if (ball.Texture != null)
+                foreach (ModelMesh mesh in sphereModel.Meshes)
                 {
-                    spriteBatch.Draw(
-                        ball.Texture,
-                        ball.Position - new Vector2(ball.Texture.Width / 2, ball.Texture.Height / 2),
-                        Color.White
-                    );
+                    foreach (BasicEffect effect in mesh.Effects)
+                    {
+                        effect.EnableDefaultLighting();
+                        effect.World = world;
+                        effect.View = view;
+                        effect.Projection = projection;
+                        effect.DiffuseColor = Color.Blue.ToVector3();
+                    }
+                    mesh.Draw();
                 }
-                
             }
 
-            spriteBatch.End();
             base.Draw(gameTime);
         }
     }

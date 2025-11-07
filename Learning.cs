@@ -3,22 +3,35 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace FunPhysics
 {
-    class Simulation : Game {
+    class Ball
+    {
+        public Vector2 Position;
+        public Vector2 Velocity;
+        public float Mass;
+        public List<Vector2> Trail = new List<Vector2>();
+
+        public Ball(Vector2 pos, Vector2 vel, float mass)
+        {
+            Position = pos;
+            Velocity = vel;
+            Mass = mass;
+        }
+    }
+
+
+    class Simulation : Game
+    {
         private GraphicsDeviceManager graphics;     // Creates the game window, controls resolution
         private SpriteBatch? spriteBatch;    // Used to draw textures/sprites
 
-        private Vector2 ball1Pos;
-        private Vector2 ball2Pos;
-        private Vector2 ball1Vel;
-        private Vector2 ball2Vel;
+        // Balls
+        private List<Ball> balls = new List<Ball>();
         private const float ballRadius = 15;
         private Texture2D? ballTexture;
 
         // Trails
         private Texture2D? trailTexture;
-        private List<Vector2> ball1Trail = new List<Vector2>();
-        private List<Vector2> ball2Trail = new List<Vector2>();
-        private const int maxTrailLength = 50; // how many points to keep
+        private const int maxTrailLength = 50;
 
 
         public Simulation()
@@ -50,14 +63,21 @@ namespace FunPhysics
             return texture;
         }
 
-
         protected override void Initialize()
         {
-            ball1Pos = new Vector2(graphics.PreferredBackBufferWidth/2 + 100, graphics.PreferredBackBufferHeight/2 + 100);
-            ball2Pos = new Vector2(graphics.PreferredBackBufferWidth/2 - 100, graphics.PreferredBackBufferHeight/2 - 100);
+            float offset = 400;
 
-            ball1Vel = new Vector2(0, 100);
-            ball2Vel = new Vector2(100, 0);
+            balls.Add(new Ball(new Vector2(400 + offset, 300), new Vector2(0, 50), 1f));
+            balls.Add(new Ball(new Vector2(600 + offset, 300), new Vector2(-50, 0), 1f));
+            balls.Add(new Ball(new Vector2(500 + offset, 500), new Vector2(0, -50), 1f));
+            balls.Add(new Ball(new Vector2(300 + offset, 400), new Vector2(50, -25), 1f));
+            balls.Add(new Ball(new Vector2(700 + offset, 400), new Vector2(-50, 25), 1f));
+            balls.Add(new Ball(new Vector2(450 + offset, 250), new Vector2(25, 50), 1f));
+            balls.Add(new Ball(new Vector2(550 + offset, 350), new Vector2(-25, -50), 1f));
+            balls.Add(new Ball(new Vector2(350 + offset, 500), new Vector2(50, 0), 1f));
+            balls.Add(new Ball(new Vector2(650 + offset, 500), new Vector2(-50, -25), 1f));
+            balls.Add(new Ball(new Vector2(500 + offset, 400), new Vector2(0, 0), 1f));
+
 
             base.Initialize();
         }
@@ -65,79 +85,72 @@ namespace FunPhysics
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            trailTexture = CreateCircleTexture(GraphicsDevice, (int)ballRadius/4, Color.White);
+            trailTexture = CreateCircleTexture(GraphicsDevice, (int)ballRadius / 4, Color.LightBlue);
             ballTexture = CreateCircleTexture(GraphicsDevice, (int)ballRadius, Color.Blue);
         }
 
-        protected override void Update(GameTime gameTime)
+       protected override void Update(GameTime gameTime)
         {
-            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds; // time elapsed since last frame
+            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            float G = 2000f;
 
-            float G = 20000f; // tweak this for visible attraction
-            float m1 = 1f;
-            float m2 = 1f;
+            // Compute gravitational forces
+            for (int i = 0; i < balls.Count; i++)
+            {
+                Vector2 totalAccel = new Vector2(0, 0);
 
-            Vector2 direction = ball2Pos - ball1Pos;
-            float r = direction.Length();
+                for (int j = 0; j < balls.Count; j++)
+                {
+                    if (i != j)
+                    {
+                        Vector2 direction = balls[j].Position - balls[i].Position;
+                        float r = direction.Length();
 
-            // Gravitational acceleration formula: F = G*(m/r^2)
-            //
-            // G        =   Gravitational constant
-            // m        =   Mass
-            // r        =   Distance between center of ball and target
+                        // Gravitational acceleration formula: F = G*(m/r^2)
+                        //
+                        // G        =   Gravitational constant
+                        // m        =   Mass
+                        // r        =   Distance between center of ball and target
+                        totalAccel += direction * G * balls[j].Mass / (r * r);
+                    }
+                }
 
-            Vector2 a1 = direction * G * m2 / (r * r);
-            Vector2 a2 = -direction * G * m1 / (r * r);
+                // Velocity = acceleration * time
+                balls[i].Velocity += totalAccel * dt;
+            }
 
-            // Velocity = acceleration * time
-            ball1Vel += a1 * dt;
-            ball2Vel += a2 * dt;
+            // Update positions and trails
+            foreach (var ball in balls)
+            {
+                // Distance = velocity * time
+                ball.Position += ball.Velocity * dt;
 
-            // Distance = velocity * time
-            ball1Pos += ball1Vel * dt;
-            ball2Pos += ball2Vel * dt;
-
-
-            ball1Trail.Add(ball1Pos);
-            ball2Trail.Add(ball2Pos);
-
-            if (ball1Trail.Count > maxTrailLength)
-                ball1Trail.RemoveAt(0);
-            if (ball2Trail.Count > maxTrailLength)
-                ball2Trail.RemoveAt(0);
-
+                ball.Trail.Add(ball.Position);
+                if (ball.Trail.Count > maxTrailLength)
+                    ball.Trail.RemoveAt(0);
+            }
 
             base.Update(gameTime);
         }
 
 
+
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
-
+            GraphicsDevice.Clear(Color.Black);
             spriteBatch!.Begin();
 
-            foreach (var pos in ball1Trail)
+            foreach (var ball in balls)
             {
-                spriteBatch.Draw(trailTexture, pos - new Vector2(ballRadius/4), Color.White);
-            }
+                foreach (var pos in ball.Trail)
+                    spriteBatch.Draw(trailTexture, pos - new Vector2(ballRadius/4), Color.White);
 
-            foreach (var pos in ball2Trail)
-            {
-                spriteBatch.Draw(trailTexture, pos - new Vector2(ballRadius/4), Color.White);
-            }
-
-            if (ballTexture != null)
-            {
-                spriteBatch.Draw(ballTexture, ball1Pos - new Vector2(ballRadius), Color.White);
-
-                spriteBatch.Draw(ballTexture, ball2Pos - new Vector2(ballRadius), Color.White);
+                if (ballTexture != null)
+                    spriteBatch.Draw(ballTexture, ball.Position - new Vector2(ballRadius), Color.White);
             }
 
             spriteBatch.End();
-
             base.Draw(gameTime);
         }
-
     }
 }

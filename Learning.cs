@@ -9,6 +9,7 @@ namespace FunPhysics
         public Vector2 Velocity;
         public float Mass;
         public List<Vector2> Trail = new List<Vector2>();
+        public Texture2D? Texture;
 
         public Ball(Vector2 pos, Vector2 vel, float mass)
         {
@@ -27,7 +28,6 @@ namespace FunPhysics
         // Balls
         private List<Ball> balls = new List<Ball>();
         private const float ballRadius = 15;
-        private Texture2D? ballTexture;
 
         // Trails
         private Texture2D? trailTexture;
@@ -43,7 +43,7 @@ namespace FunPhysics
             graphics.ApplyChanges();
         }
 
-        Texture2D CreateCircleTexture(GraphicsDevice graphics, int radius, Color color)
+        public Texture2D CreateCircleTexture(GraphicsDevice graphics, int radius, Color color)
         {
             int diameter = radius * 2;
             Texture2D texture = new Texture2D(graphics, diameter, diameter);
@@ -65,19 +65,17 @@ namespace FunPhysics
 
         protected override void Initialize()
         {
-            float offset = 400;
+            int numBalls = 8;
 
-            balls.Add(new Ball(new Vector2(400 + offset, 300), new Vector2(0, 50), 1f));
-            balls.Add(new Ball(new Vector2(600 + offset, 300), new Vector2(-50, 0), 1f));
-            balls.Add(new Ball(new Vector2(500 + offset, 500), new Vector2(0, -50), 1f));
-            balls.Add(new Ball(new Vector2(300 + offset, 400), new Vector2(50, -25), 1f));
-            balls.Add(new Ball(new Vector2(700 + offset, 400), new Vector2(-50, 25), 1f));
-            balls.Add(new Ball(new Vector2(450 + offset, 250), new Vector2(25, 50), 1f));
-            balls.Add(new Ball(new Vector2(550 + offset, 350), new Vector2(-25, -50), 1f));
-            balls.Add(new Ball(new Vector2(350 + offset, 500), new Vector2(50, 0), 1f));
-            balls.Add(new Ball(new Vector2(650 + offset, 500), new Vector2(-50, -25), 1f));
-            balls.Add(new Ball(new Vector2(500 + offset, 400), new Vector2(0, 0), 1f));
+            Random random = new Random();
 
+            for (int i = 0; i < numBalls; i++)
+            {
+                balls.Add(new Ball(
+                    new Vector2(random.Next(100, 901), random.Next(100, 701)),
+                    new Vector2(random.Next(-50, 51), random.Next(-50, 51)),
+                    random.Next(1, 8)));
+            }
 
             base.Initialize();
         }
@@ -86,13 +84,19 @@ namespace FunPhysics
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
             trailTexture = CreateCircleTexture(GraphicsDevice, (int)ballRadius / 4, Color.LightBlue);
-            ballTexture = CreateCircleTexture(GraphicsDevice, (int)ballRadius, Color.Blue);
+            
+            Color color = Color.Blue;
+            foreach (var ball in balls)
+            {
+                color = new Color(MathHelper.Clamp(color.R + 20, 0, 255),color.G,color.B);
+                ball.Texture = CreateCircleTexture(GraphicsDevice, (int)ball.Mass*10, color);
+            }
         }
 
        protected override void Update(GameTime gameTime)
         {
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            float G = 2000f;
+            float G = 500f;
 
             // Compute gravitational forces
             for (int i = 0; i < balls.Count; i++)
@@ -142,11 +146,20 @@ namespace FunPhysics
 
             foreach (var ball in balls)
             {
+                // Draw the trail
                 foreach (var pos in ball.Trail)
-                    spriteBatch.Draw(trailTexture, pos - new Vector2(ballRadius/4), Color.White);
+                    spriteBatch.Draw(trailTexture, pos - new Vector2(ballRadius / 4), Color.White);
 
-                if (ballTexture != null)
-                    spriteBatch.Draw(ballTexture, ball.Position - new Vector2(ballRadius), Color.White);
+                // Draw the ball using its own texture
+                if (ball.Texture != null)
+                {
+                    spriteBatch.Draw(
+                        ball.Texture,
+                        ball.Position - new Vector2(ball.Texture.Width / 2, ball.Texture.Height / 2),
+                        Color.White
+                    );
+                }
+                
             }
 
             spriteBatch.End();

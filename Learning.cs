@@ -44,7 +44,7 @@ namespace FunPhysics
         private float G = 100;
         private float panAmount = 10;
         private const int maxTrailLength = 50;
-        private int numBalls = 30;
+        private int numBalls = 20;
 
 
         public Simulation()
@@ -76,11 +76,22 @@ namespace FunPhysics
             return texture;
         }
 
-        protected void MoveBalls(Vector2 direction, float panAmount)
+        private void MoveBalls(Vector2 direction, float panAmount)
         {
             foreach (Ball ball in balls)
             {
                 ball.Position += panAmount * direction;
+            }
+        }
+
+        private void MovePastPositions(Vector2 direction, float panAmount)
+        {
+            foreach (Ball ball in balls)
+            {
+                for (int i = 0; i < ball.Trail.Count; i++)
+                {
+                    ball.Trail[i] += panAmount * direction;
+                }
             }
         }
 
@@ -138,16 +149,13 @@ namespace FunPhysics
                         Vector2 direction = balls[j].Position - balls[i].Position;
                         float r = direction.Length();
 
-                        // if (r > balls[i].Radius + balls[j].Radius)
-                        // {
-                            // Gravitational force formula: F = G*((m1*m2)/r^2)
-                            // Gravitational acceleration formula: a = G*(m/r^2)
-                            //
-                            // G        =   Gravitational constant
-                            // m        =   Mass
-                            // r        =   Distance between center of ball and target
+                        // Gravitational force formula: F = G*((m1*m2)/r^2)
+                        // Gravitational acceleration formula: a = G*(m/r^2)
+                        //
+                        // G        =   Gravitational constant
+                        // m        =   Mass
+                        // r        =   Distance between center of ball and target
                         totalAccel += direction * G * balls[j].Mass / (r * r);
-                        // }
                     }
 
                     // Ball collision
@@ -167,10 +175,6 @@ namespace FunPhysics
                         float v1NF = (v1NI * (balls[i].Mass - balls[j].Mass) + elasticity * 2 * balls[j].Mass * v2NI) / (balls[i].Mass + balls[j].Mass);
                         float v2NF = (v2NI * (balls[j].Mass - balls[i].Mass) + elasticity * 2 * balls[i].Mass * v1NI) / (balls[i].Mass + balls[j].Mass);
 
-                        // float bounceScale = 0.01f;
-                        // float kickThreshold = 0.3f;
-                        // float extraBounce1 = (overlap > kickThreshold) ? bounceScale * overlap * overlap * v1NF / Math.Abs(v1NF) : 0;    // Slight bounce addition
-                        // float extraBounce2 = (overlap > kickThreshold) ? bounceScale * overlap * overlap * v1NF / Math.Abs(v2NF) : 0;    // Slight bounce addition
                         float extraBounce1 = 0;
                         float extraBounce2 = 0;
                         float overlap = (float)(balls[i].Radius + balls[j].Radius - separation);
@@ -203,7 +207,6 @@ namespace FunPhysics
 
                 // Velocity = acceleration * time
                 balls[i].Velocity += totalAccel * dt;
-                // balls[i].Velocity += (totalAccel - totalAccel.Dot(n) * n) * dt;
             }
 
             // Update positions and trails
@@ -223,12 +226,16 @@ namespace FunPhysics
             if (state.IsKeyDown(Keys.W))
             {
                 MoveBalls(new Vector2(0, 1), panAmount);
+                MovePastPositions(new Vector2(0, 1), panAmount);
             } else if (state.IsKeyDown(Keys.A)){
                 MoveBalls(new Vector2(1, 0), panAmount);
+                MovePastPositions(new Vector2(1, 0), panAmount);
             } else if (state.IsKeyDown(Keys.S)){
                 MoveBalls(new Vector2(0, -1), panAmount);
+                MovePastPositions(new Vector2(0, -1), panAmount);
             } else if (state.IsKeyDown(Keys.D)){
                 MoveBalls(new Vector2(-1, 0), panAmount);
+                MovePastPositions(new Vector2(-1, 0), panAmount);
             }
             base.Update(gameTime);
         }

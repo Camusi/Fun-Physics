@@ -1,5 +1,7 @@
+using System.Security.Cryptography.X509Certificates;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MonoGame.Extended;
 
 namespace FunPhysics
 {
@@ -10,12 +12,14 @@ namespace FunPhysics
         public float Mass;
         public List<Vector2> Trail = new List<Vector2>();
         public Texture2D? Texture;
+        public float Radius;
 
-        public Ball(Vector2 pos, Vector2 vel, float mass)
+        public Ball(Vector2 pos, Vector2 vel, float mass, float radius)
         {
             Position = pos;
             Velocity = vel;
             Mass = mass;
+            Radius = radius;
         }
     }
 
@@ -63,22 +67,32 @@ namespace FunPhysics
             return texture;
         }
 
+        protected void MoveBalls(Vector2 direction, float panAmount)
+        {
+            foreach (Ball ball in balls)
+            {
+                ball.Position += panAmount * direction;
+            }
+        }
+
         protected override void Initialize()
         {
-            int numBalls = 8;
+            int numBalls = 10;
 
             Random random = new Random();
 
             balls.Add(new Ball(
                     new Vector2(900, 500),
                     new Vector2(0, 0),
-                    100));
+                    100,
+                    150));
 
             for (int i = 0; i < numBalls; i++)
             {
                 balls.Add(new Ball(
-                    new Vector2(random.Next(100, 901), random.Next(100, 701)),
+                    new Vector2(random.Next(100, 101), random.Next(100, 701)),
                     new Vector2(random.Next(-50, 51), random.Next(-50, 51)),
+                    random.Next(1, 5),
                     random.Next(5, 30)));
             }
 
@@ -94,14 +108,14 @@ namespace FunPhysics
             foreach (var ball in balls)
             {
                 color = new Color(MathHelper.Clamp(color.R + 20, 0, 255),color.G,color.B);
-                ball.Texture = CreateCircleTexture(GraphicsDevice, (int)ball.Mass, color);
+                ball.Texture = CreateCircleTexture(GraphicsDevice, (int)ball.Radius, color);
             }
         }
 
        protected override void Update(GameTime gameTime)
         {
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            float G = 100;
+            float G = 1000;
 
             // Compute gravitational forces
             for (int i = 0; i < balls.Count; i++)
@@ -115,12 +129,38 @@ namespace FunPhysics
                         Vector2 direction = balls[j].Position - balls[i].Position;
                         float r = direction.Length();
 
-                        // Gravitational acceleration formula: F = G*(m/r^2)
+                        // Gravitational force formula: F = G*((m1*m2)/r^2)
+                        // Gravitational acceleration formula: a = G*(m/r^2)
                         //
                         // G        =   Gravitational constant
                         // m        =   Mass
                         // r        =   Distance between center of ball and target
                         totalAccel += direction * G * balls[j].Mass / (r * r);
+                    }
+
+                    // Ball collision
+                    Vector2 separation_vec = balls[i].Position - balls[j].Position;
+                    float separation = separation_vec.Length();
+                    if (separation <= balls[i].Radius + balls[j].Radius && separation != 0 && i >= j)
+                    {
+                        Vector2 n = separation_vec / separation;
+                        Vector2 tangent_vec = new Vector2(-n.Y, n.X);
+
+                        float v1Tangent = tangent_vec.Dot(balls[i].Velocity);
+                        float v2Tangent = tangent_vec.Dot(balls[j].Velocity);
+
+                        float v1NI = n.Dot(balls[i].Velocity);
+                        float v2NI = n.Dot(balls[j].Velocity);
+
+                        float v1NF = (v1NI * (balls[i].Mass - balls[j].Mass) + 2 * balls[j].Mass * v2NI) / (balls[i].Mass + balls[j].Mass);
+                        float v2NF = (v2NI * (balls[j].Mass - balls[i].Mass) + 2 * balls[i].Mass * v1NI) / (balls[i].Mass + balls[j].Mass);
+
+                        float bounceScale = 0.1f;
+                        float extraBounce1 = ((balls[i].Radius + balls[j].Radius - separation) > 0.1f) ? bounceScale * v1NF / Math.Abs(v1NF) : 0;    // Slight bounce addition
+                        float extraBounce2 = ((balls[i].Radius + balls[j].Radius - separation) > 0.1f) ? bounceScale * v1NF / Math.Abs(v2NF) : 0;    // Slight bounce addition
+
+                        balls[i].Velocity = v1Tangent * tangent_vec + (v1NF + extraBounce1) * n;
+                        balls[j].Velocity = v2Tangent * tangent_vec + (v2NF + extraBounce2) * n;
                     }
                 }
 
@@ -137,6 +177,36 @@ namespace FunPhysics
                 ball.Trail.Add(ball.Position);
                 if (ball.Trail.Count > maxTrailLength)
                     ball.Trail.RemoveAt(0);
+            }
+
+            // Pan with wasd
+            float panAmount = 100;
+            if (Console.KeyAvailable)
+            {
+                switch (Console.ReadKey().Key)
+                {
+                    case ConsoleKey.W:
+                        MoveBalls(new Vector2(0, -1), panAmount);
+                        Console.Out.WriteLine("W");
+                        break;
+
+                    case ConsoleKey.A:
+                        MoveBalls(new Vector2(1, 0), panAmount);
+                        break;
+
+                    case ConsoleKey.S:
+                        MoveBalls(new Vector2(0, 1), panAmount);
+                        break;
+
+                    case ConsoleKey.D:
+                        MoveBalls(new Vector2(-1, 0), panAmount);
+                        break;
+
+                    default:
+                        Console.WriteLine("Invalid key");
+                        break;
+                }
+
             }
 
             base.Update(gameTime);

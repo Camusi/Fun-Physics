@@ -36,12 +36,17 @@ namespace FunPhysics
         private Texture2D? trailTexture;
 
         // Settings
-        private bool wallsEnabled = false;
-        private float elasticity = 0.98f;
+        private bool wallsEnabled = true;
+        private float elasticity = 0.7f;
         private float G = 100;
         private float panAmount = 10;
         private const int maxTrailLength = 50;
-        private int numBalls = 30;
+        private int numBalls = 10;
+        private bool twoPlayer = true;
+        private float playerAccel = 30;
+        private float wallBounciness = 0.5f;
+
+        // Hard level params = T, 0.7, 100, 10, 50, 10, T, 10, 0.5
 
 
         public Simulation()
@@ -96,6 +101,22 @@ namespace FunPhysics
         {
             Random random = new Random();
 
+            if (twoPlayer == true)
+            {
+                balls.Add(new Ball(
+                    new Vector2(950, 500),
+                    new Vector2(0, 0),
+                    1000,
+                    20,
+                    false));
+                balls.Add(new Ball(
+                    new Vector2(850, 500),
+                    new Vector2(0, 0),
+                    1000,
+                    20,
+                    false));
+            }
+
             // balls.Add(new Ball(
             //         new Vector2(900, 500),
             //         new Vector2(0, 0),
@@ -130,11 +151,26 @@ namespace FunPhysics
             trailTexture = CreateCircleTexture(GraphicsDevice, 3, Color.LightBlue);
 
             Color color = Color.Blue;
-            foreach (var ball in balls)
+
+            if (twoPlayer)
             {
-                color = new Color(MathHelper.Clamp(color.R + 20, 0, 255), color.G, color.B);
-                ball.Texture = CreateCircleTexture(GraphicsDevice, (int)ball.Radius, color);
+                foreach (var ball in balls.Skip(2).ToArray())
+                {
+                    color = new Color(MathHelper.Clamp(color.R + 20, 0, 255), color.G, color.B);
+                    ball.Texture = CreateCircleTexture(GraphicsDevice, (int)ball.Radius, color);
+                }
+                balls[0].Texture = CreateCircleTexture(GraphicsDevice, (int)balls[0].Radius, Color.Green);
+                balls[1].Texture = CreateCircleTexture(GraphicsDevice, (int)balls[1].Radius, Color.Red);
             }
+            else
+            {
+                foreach (var ball in balls)
+                {
+                    color = new Color(MathHelper.Clamp(color.R + 20, 0, 255), color.G, color.B);
+                    ball.Texture = CreateCircleTexture(GraphicsDevice, (int)ball.Radius, color);
+                }
+            }
+            
         }
 
         protected override void Update(GameTime gameTime)
@@ -147,6 +183,30 @@ namespace FunPhysics
                 Vector2 totalAccel = new Vector2(0, 0);
                 Vector2 n = new Vector2(0, 0);
 
+                if (wallsEnabled)
+                {
+                    if (balls[i].Position.X - balls[i].Radius < 0)
+                    {
+                        balls[i].Velocity.X *= -1 * wallBounciness;
+                        balls[i].Position.X -= balls[i].Position.X - (float) balls[i].Radius;
+                    }
+                    if (balls[i].Position.X + balls[i].Radius > graphics.PreferredBackBufferWidth)
+                    {
+                        balls[i].Velocity.X *= -1 * wallBounciness;
+                        balls[i].Position.X -= balls[i].Position.X + (float) balls[i].Radius - graphics.PreferredBackBufferWidth;
+                    }
+                    if (balls[i].Position.Y - balls[i].Radius < 0)
+                    {
+                        balls[i].Velocity.Y *= -1 * wallBounciness;
+                        balls[i].Position.Y -= balls[i].Position.Y - (float) balls[i].Radius;
+                    }
+                    if (balls[i].Position.Y + balls[i].Radius > graphics.PreferredBackBufferHeight)
+                    {
+                        balls[i].Velocity.Y *= -1 * wallBounciness;
+                        balls[i].Position.Y -= balls[i].Position.Y + (float) balls[i].Radius - graphics.PreferredBackBufferHeight;
+                    }
+                }
+                        
                 for (int j = 0; j < balls.Count; j++)
                 {
                     if (i != j)
@@ -182,33 +242,12 @@ namespace FunPhysics
                             float v1NF = (v1NI * (balls[i].Mass - balls[j].Mass) + elasticity * 2 * balls[j].Mass * v2NI) / (balls[i].Mass + balls[j].Mass);
                             float v2NF = (v2NI * (balls[j].Mass - balls[i].Mass) + elasticity * 2 * balls[i].Mass * v1NI) / (balls[i].Mass + balls[j].Mass);
 
-                            float extraBounce1 = 0;
-                            float extraBounce2 = 0;
+                            
                             float overlap = (float)(balls[i].Radius + balls[j].Radius - separation);
 
-                            balls[i].Velocity = v1Tangent * tangent_vec + (v1NF + extraBounce1) * n;
-                            balls[j].Velocity = v2Tangent * tangent_vec + (v2NF + extraBounce2) * n;
+                            balls[i].Velocity = v1Tangent * tangent_vec + v1NF * n;
+                            balls[j].Velocity = v2Tangent * tangent_vec + v2NF * n;
                             balls[i].Position = balls[i].Position + n * overlap;
-                        }
-
-                        if (wallsEnabled)
-                        {
-                            if (balls[i].Position.X - balls[i].Radius < 0)
-                            {
-                                balls[i].Velocity.X *= -1;
-                            }
-                            if (balls[i].Position.X + balls[i].Radius > graphics.PreferredBackBufferWidth)
-                            {
-                                balls[i].Velocity.X *= -1;
-                            }
-                            if (balls[i].Position.Y - balls[i].Radius < 0)
-                            {
-                                balls[i].Velocity.Y *= -1;
-                            }
-                            if (balls[i].Position.Y + balls[i].Radius > graphics.PreferredBackBufferHeight)
-                            {
-                                balls[i].Velocity.Y *= -1;
-                            }
                         }
                     }
                 }
@@ -233,25 +272,67 @@ namespace FunPhysics
             // Pan with wasd
             KeyboardState state = Keyboard.GetState();
 
-            if (state.IsKeyDown(Keys.W))
+            if (twoPlayer == false)
             {
-                MoveBalls(new Vector2(0, 1), panAmount);
-                MovePastPositions(new Vector2(0, 1), panAmount);
+                if (state.IsKeyDown(Keys.W))
+                {
+                    MoveBalls(new Vector2(0, 1), panAmount);
+                    MovePastPositions(new Vector2(0, 1), panAmount);
+                }
+                if (state.IsKeyDown(Keys.A))
+                {
+                    MoveBalls(new Vector2(1, 0), panAmount);
+                    MovePastPositions(new Vector2(1, 0), panAmount);
+                }
+                if (state.IsKeyDown(Keys.S))
+                {
+                    MoveBalls(new Vector2(0, -1), panAmount);
+                    MovePastPositions(new Vector2(0, -1), panAmount);
+                }
+                if (state.IsKeyDown(Keys.D))
+                {
+                    MoveBalls(new Vector2(-1, 0), panAmount);
+                    MovePastPositions(new Vector2(-1, 0), panAmount);
+                }
             }
-            if (state.IsKeyDown(Keys.A))
+            else
             {
-                MoveBalls(new Vector2(1, 0), panAmount);
-                MovePastPositions(new Vector2(1, 0), panAmount);
+                if (state.IsKeyDown(Keys.W))
+                {
+                    balls[0].Velocity.Y -= playerAccel;
+                }
+                if (state.IsKeyDown(Keys.A))
+                {
+                    balls[0].Velocity.X -= playerAccel;
+                }
+                if (state.IsKeyDown(Keys.S))
+                {
+                    balls[0].Velocity.Y += playerAccel;
+                }
+                if (state.IsKeyDown(Keys.D))
+                {
+                    balls[0].Velocity.X += playerAccel;
+                }
+
+                if (state.IsKeyDown(Keys.Up))
+                {
+                    balls[1].Velocity.Y -= playerAccel;
+                }
+                if (state.IsKeyDown(Keys.Left))
+                {
+                    balls[1].Velocity.X -= playerAccel;
+                }
+                if (state.IsKeyDown(Keys.Down))
+                {
+                    balls[1].Velocity.Y += playerAccel;
+                }
+                if (state.IsKeyDown(Keys.Right))
+                {
+                    balls[1].Velocity.X += playerAccel;
+                }
             }
-            if (state.IsKeyDown(Keys.S))
-            {
-                MoveBalls(new Vector2(0, -1), panAmount);
-                MovePastPositions(new Vector2(0, -1), panAmount);
-            }
-            if (state.IsKeyDown(Keys.D)){
-                MoveBalls(new Vector2(-1, 0), panAmount);
-                MovePastPositions(new Vector2(-1, 0), panAmount);
-            }
+
+
             base.Update(gameTime);
         }
 

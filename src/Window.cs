@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended.Screens;
+using MonoGame.Extended.BitmapFonts;
 
 namespace FunPhysics
 {
@@ -28,11 +29,10 @@ namespace FunPhysics
         protected override void LoadContent()
         {
             SpriteBatch spriteBatch = new SpriteBatch(GraphicsDevice);
-            SpriteFont defaultFont = Content.Load<SpriteFont>("default");
+            BitmapFont defaultFont = BitmapFont.FromFile(GraphicsDevice, "default.fnt");
 
-            // Start at the simulation screen
-            var simulationScreen = new LevelSelectScreen(graphics, spriteBatch, defaultFont);
-            screenManager!.LoadScreen(simulationScreen);
+            var lvlScreen = new LevelSelectScreen(graphics, spriteBatch, defaultFont);
+            screenManager!.LoadScreen(lvlScreen);
         }
     }
 }

@@ -146,7 +146,7 @@ namespace FunPhysics
 
         public override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(graphics.GraphicsDevice);
+            spriteBatch = new SpriteBatch(graphics!.GraphicsDevice);
             trailTexture = CreateCircleTexture(graphics.GraphicsDevice, 3, Color.LightBlue);
 
             Color color = Color.Blue;
@@ -189,7 +189,7 @@ namespace FunPhysics
                         balls[i].Velocity.X *= -1 * wallBounciness;
                         balls[i].Position.X -= balls[i].Position.X - (float) balls[i].Radius;
                     }
-                    if (balls[i].Position.X + balls[i].Radius > graphics.PreferredBackBufferWidth)
+                    if (balls[i].Position.X + balls[i].Radius > graphics!.PreferredBackBufferWidth)
                     {
                         balls[i].Velocity.X *= -1 * wallBounciness;
                         balls[i].Position.X -= balls[i].Position.X + (float) balls[i].Radius - graphics.PreferredBackBufferWidth;
@@ -334,7 +334,7 @@ namespace FunPhysics
 
         public override void Draw(GameTime gameTime)
         {
-            graphics.GraphicsDevice.Clear(Color.Black);
+            graphics!.GraphicsDevice.Clear(Color.Black);
             spriteBatch!.Begin();
 
             foreach (var ball in balls)

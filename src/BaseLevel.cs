@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
 using Microsoft.Xna.Framework.Input;
+using MonoGame.Extended.Screens;
 
 
 namespace FunPhysics
@@ -27,9 +28,9 @@ namespace FunPhysics
     }
 
 
-    class Simulation : Game
+    class SimulationScreen : Screen
     {
-        private GraphicsDeviceManager graphics;     // Creates the game window, controls resolution
+        private GraphicsDeviceManager? graphics;     // Creates the game window, controls resolution
         private SpriteBatch? spriteBatch;    // Used to draw textures/sprites
         
         private List<Ball> balls = new List<Ball>();
@@ -49,12 +50,10 @@ namespace FunPhysics
         // Hard level params = T, 0.7, 100, 10, 50, 10, T, 10, 0.5
 
 
-        public Simulation()
+        public SimulationScreen(GraphicsDeviceManager graphicsIn, SpriteBatch spriteBatchIn)
         {
-            graphics = new GraphicsDeviceManager(this);
-            IsMouseVisible = true;
-            graphics.PreferredBackBufferWidth = 1800;
-            graphics.PreferredBackBufferHeight = 900;
+            graphics = graphicsIn;
+            spriteBatch = spriteBatchIn;
             graphics.ApplyChanges();
         }
 
@@ -97,7 +96,7 @@ namespace FunPhysics
             }
         }
 
-        protected override void Initialize()
+        public override void Initialize()
         {
             Random random = new Random();
 
@@ -145,10 +144,10 @@ namespace FunPhysics
             base.Initialize();
         }
 
-        protected override void LoadContent()
+        public override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(GraphicsDevice);
-            trailTexture = CreateCircleTexture(GraphicsDevice, 3, Color.LightBlue);
+            spriteBatch = new SpriteBatch(graphics!.GraphicsDevice);
+            trailTexture = CreateCircleTexture(graphics.GraphicsDevice, 3, Color.LightBlue);
 
             Color color = Color.Blue;
 
@@ -157,23 +156,23 @@ namespace FunPhysics
                 foreach (var ball in balls.Skip(2).ToArray())
                 {
                     color = new Color(MathHelper.Clamp(color.R + 20, 0, 255), color.G, color.B);
-                    ball.Texture = CreateCircleTexture(GraphicsDevice, (int)ball.Radius, color);
+                    ball.Texture = CreateCircleTexture(graphics.GraphicsDevice, (int)ball.Radius, color);
                 }
-                balls[0].Texture = CreateCircleTexture(GraphicsDevice, (int)balls[0].Radius, Color.Green);
-                balls[1].Texture = CreateCircleTexture(GraphicsDevice, (int)balls[1].Radius, Color.Red);
+                balls[0].Texture = CreateCircleTexture(graphics.GraphicsDevice, (int)balls[0].Radius, Color.Green);
+                balls[1].Texture = CreateCircleTexture(graphics.GraphicsDevice, (int)balls[1].Radius, Color.Red);
             }
             else
             {
                 foreach (var ball in balls)
                 {
                     color = new Color(MathHelper.Clamp(color.R + 20, 0, 255), color.G, color.B);
-                    ball.Texture = CreateCircleTexture(GraphicsDevice, (int)ball.Radius, color);
+                    ball.Texture = CreateCircleTexture(graphics.GraphicsDevice, (int)ball.Radius, color);
                 }
             }
             
         }
 
-        protected override void Update(GameTime gameTime)
+        public override void Update(GameTime gameTime)
         {
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
@@ -190,7 +189,7 @@ namespace FunPhysics
                         balls[i].Velocity.X *= -1 * wallBounciness;
                         balls[i].Position.X -= balls[i].Position.X - (float) balls[i].Radius;
                     }
-                    if (balls[i].Position.X + balls[i].Radius > graphics.PreferredBackBufferWidth)
+                    if (balls[i].Position.X + balls[i].Radius > graphics!.PreferredBackBufferWidth)
                     {
                         balls[i].Velocity.X *= -1 * wallBounciness;
                         balls[i].Position.X -= balls[i].Position.X + (float) balls[i].Radius - graphics.PreferredBackBufferWidth;
@@ -331,14 +330,11 @@ namespace FunPhysics
                     balls[1].Velocity.X += playerAccel;
                 }
             }
-
-
-            base.Update(gameTime);
         }
 
-        protected override void Draw(GameTime gameTime)
+        public override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.Black);
+            graphics!.GraphicsDevice.Clear(Color.Black);
             spriteBatch!.Begin();
 
             foreach (var ball in balls)
@@ -367,7 +363,6 @@ namespace FunPhysics
             // }
 
             spriteBatch.End();
-            base.Draw(gameTime);
         }
     }
 }

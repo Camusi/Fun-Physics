@@ -5,7 +5,7 @@ namespace FunPhysics
         [STAThread]
         static void Main()
         {
-            using var level = new Simulation();
+            using var level = new Window();
             level.Run();
         }
     }

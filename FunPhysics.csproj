@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="MonoGame.Extended" Version="5.2.0" />
     <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.4.1" />
+    <MonoGameContent Include="Content\**\*" />
   </ItemGroup>
 
 </Project>

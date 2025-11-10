@@ -64,7 +64,7 @@ namespace FunPhysics
 
         public override void Draw(GameTime gameTime)
         {
-            graphicsDevice.Clear(Color.CornflowerBlue);
+            graphicsDevice.Clear(Color.Black);
 
             spriteBatch.Begin();
 

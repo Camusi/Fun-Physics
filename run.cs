@@ -1,5 +1,3 @@
-using System;
-
 namespace FunPhysics
 {
     public static class Run
@@ -7,8 +5,8 @@ namespace FunPhysics
         [STAThread]
         static void Main()
         {
-            using var game = new Simulation();
-            game.Run();
+            using var level = new Simulation();
+            level.Run();
         }
     }
 }

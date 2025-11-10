@@ -51,7 +51,7 @@ namespace FunPhysics
 
             if (mouse.LeftButton == ButtonState.Pressed)
             {
-                for (int i = 0; i < levelButtons.Length; i++)
+                for (int i = 0; i < levelButtons!.Length; i++)
                 {
                     if (levelButtons[i].Contains(mouse.Position))
                     {
@@ -68,7 +68,7 @@ namespace FunPhysics
 
             spriteBatch.Begin();
 
-            for (int i = 0; i < levelButtons.Length; i++)
+            for (int i = 0; i < levelButtons!.Length; i++)
             {
                 spriteBatch.Draw(
                     TextureHelper.WhiteTexture(graphicsDevice),
@@ -76,7 +76,7 @@ namespace FunPhysics
                     Color.DarkGray
                 );
 
-                Vector2 textSize = font.MeasureString(levelNames[i]);
+                Vector2 textSize = font!.MeasureString(levelNames[i]);
                 Vector2 textPos = new Vector2(
                     levelButtons[i].X + (levelButtons[i].Width - textSize.X) / 2,
                     levelButtons[i].Y + (levelButtons[i].Height - textSize.Y) / 2
@@ -91,7 +91,7 @@ namespace FunPhysics
     // Helper to create a 1x1 white texture for drawing rectangles
     public static class TextureHelper
     {
-        private static Texture2D whiteTexture;
+        private static Texture2D? whiteTexture;
 
         public static Texture2D WhiteTexture(GraphicsDevice device)
         {

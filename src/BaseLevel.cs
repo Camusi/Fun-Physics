@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended.Screens;
+using System.Text;
 
 
 namespace FunPhysics
@@ -32,9 +33,10 @@ namespace FunPhysics
     {
         private GraphicsDeviceManager? graphics;     // Creates the game window, controls resolution
         private SpriteBatch? spriteBatch;    // Used to draw textures/sprites
-        
+
         private List<Ball> balls = new List<Ball>();
         private Texture2D? trailTexture;
+        private Vector2? mouseClickPosition;
 
         // Settings
         private bool wallsEnabled = true;
@@ -46,6 +48,7 @@ namespace FunPhysics
         private bool twoPlayer = true;
         private float playerAccel = 30;
         private float wallBounciness = 0.5f;
+        private float expStrength = -10000;
 
         // Hard level params = T, 0.7, 100, 10, 50, 10, T, 10, 0.5
 
@@ -169,7 +172,7 @@ namespace FunPhysics
                     ball.Texture = CreateCircleTexture(graphics.GraphicsDevice, (int)ball.Radius, color);
                 }
             }
-            
+
         }
 
         public override void Update(GameTime gameTime)
@@ -187,25 +190,25 @@ namespace FunPhysics
                     if (balls[i].Position.X - balls[i].Radius < 0)
                     {
                         balls[i].Velocity.X *= -1 * wallBounciness;
-                        balls[i].Position.X -= balls[i].Position.X - (float) balls[i].Radius;
+                        balls[i].Position.X -= balls[i].Position.X - (float)balls[i].Radius;
                     }
                     if (balls[i].Position.X + balls[i].Radius > graphics!.PreferredBackBufferWidth)
                     {
                         balls[i].Velocity.X *= -1 * wallBounciness;
-                        balls[i].Position.X -= balls[i].Position.X + (float) balls[i].Radius - graphics.PreferredBackBufferWidth;
+                        balls[i].Position.X -= balls[i].Position.X + (float)balls[i].Radius - graphics.PreferredBackBufferWidth;
                     }
                     if (balls[i].Position.Y - balls[i].Radius < 0)
                     {
                         balls[i].Velocity.Y *= -1 * wallBounciness;
-                        balls[i].Position.Y -= balls[i].Position.Y - (float) balls[i].Radius;
+                        balls[i].Position.Y -= balls[i].Position.Y - (float)balls[i].Radius;
                     }
                     if (balls[i].Position.Y + balls[i].Radius > graphics.PreferredBackBufferHeight)
                     {
                         balls[i].Velocity.Y *= -1 * wallBounciness;
-                        balls[i].Position.Y -= balls[i].Position.Y + (float) balls[i].Radius - graphics.PreferredBackBufferHeight;
+                        balls[i].Position.Y -= balls[i].Position.Y + (float)balls[i].Radius - graphics.PreferredBackBufferHeight;
                     }
                 }
-                        
+
                 for (int j = 0; j < balls.Count; j++)
                 {
                     if (i != j)
@@ -241,7 +244,7 @@ namespace FunPhysics
                             float v1NF = (v1NI * (balls[i].Mass - balls[j].Mass) + elasticity * 2 * balls[j].Mass * v2NI) / (balls[i].Mass + balls[j].Mass);
                             float v2NF = (v2NI * (balls[j].Mass - balls[i].Mass) + elasticity * 2 * balls[i].Mass * v1NI) / (balls[i].Mass + balls[j].Mass);
 
-                            
+
                             float overlap = (float)(balls[i].Radius + balls[j].Radius - separation);
 
                             balls[i].Velocity = v1Tangent * tangent_vec + v1NF * n;
@@ -330,6 +333,19 @@ namespace FunPhysics
                     balls[1].Velocity.X += playerAccel;
                 }
             }
+            MouseState currentMouseState = Mouse.GetState();
+
+            // Check for left mouse button click
+            if (currentMouseState.LeftButton == ButtonState.Pressed)
+            {
+                mouseClickPosition = new Vector2(currentMouseState.X, currentMouseState.Y);
+                foreach (var ball in balls)
+                {
+                    Vector2 expVec = ball.Position - mouseClickPosition.Value;
+                    float expDist = expVec.Length();
+                    ball.Velocity += expVec * expStrength / (expDist * expDist);
+                }
+            }
         }
 
         public override void Draw(GameTime gameTime)
@@ -354,13 +370,6 @@ namespace FunPhysics
                 }
 
             }
-
-            // MouseState currentMouseState = Mouse.GetState();
-            // if (currentMouseState.LeftButton == ButtonState.Pressed)
-            // {
-            //     int mouseX = currentMouseState.X;
-            //     int mouseY = currentMouseState.Y;
-            // }
 
             spriteBatch.End();
         }
